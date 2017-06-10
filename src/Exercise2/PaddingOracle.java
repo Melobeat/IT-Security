@@ -2,13 +2,12 @@ package Exercise2;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.ArrayList;
+import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.Base64;
-import java.util.List;
 
 /**
  * Project: IT-Security
@@ -16,51 +15,26 @@ import java.util.List;
  */
 public class PaddingOracle {
 
-    private static final char[] HEX_ARRAY = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-
     public static void main(String[] args) {
+        String urlQuery = "NkivYeRHPWegVIG%2FgiptBChbA8%2BZtjWslmOGB58oathyv1U13KIYy4kVC3Wuq4LcahaFL8lrxTl76VU921AVJw%3D%3D";
 
-        String input = "NkivYeRHPWegVIG%2FgiptBChbA8%2BZtjWslmOGB58oathyv1U13KIYy4kVC3Wuq4LcahaFL8lrxTl76VU921AVJw%3D%3D";
-        List<String> cipherBlocks = getCiphertext(input);
-        System.out.println(cipherBlocks);
+        byte[][] cipherBlocks = splitArray(decode(urlQuery));
 
-        switch (sendRequest(input)) {
-            case 200:
-                System.out.println("Padding valid");
-                break;
-            case 500:
-                System.out.println("Padding invalid");
-                break;
-            case 400:
-                System.out.println("Bad request");
-                break;
-            default:
-                System.out.println("Something went wrong");
-        }
+        System.out.println(encode(concatArrays(cipherBlocks)));
 
-    }
-
-    private static List<String> getCiphertext(String query) {
-
-        try {
-            String decodedURL = URLDecoder.decode(query, "UTF-8");
-            byte[] decodedBase64 = Base64.getDecoder().decode(decodedURL);
-
-            String text = String.format("%040x", new BigInteger(1, decodedBase64));
-            final int SIZE = 32;
-
-            List<String> ret = new ArrayList<>((text.length() + SIZE - 1) / SIZE);
-
-            for (int start = 0; start < text.length(); start += SIZE) {
-                ret.add(text.substring(start, Math.min(text.length(), start + SIZE)));
-            }
-            return ret;
-
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            return null;
-        }
-
+//        switch (sendRequest(input)) {
+//            case 200:
+//                System.out.println("Padding valid");
+//                break;
+//            case 500:
+//                System.out.println("Padding invalid");
+//                break;
+//            case 400:
+//                System.out.println("Bad request");
+//                break;
+//            default:
+//                System.out.println("Something went wrong");
+//        }
     }
 
     private static int sendRequest(String query) {
@@ -81,4 +55,54 @@ public class PaddingOracle {
         }
     }
 
+    private static byte[][] splitArray(byte[] data) {
+        final int length = data.length;
+        final byte[][] dest = new byte[(length + 16 - 1) / 16][];
+        int destIndex = 0;
+        int stopIndex = 0;
+
+        for (int startIndex = 0; startIndex + 16 <= length; startIndex += 16) {
+            stopIndex += 16;
+            dest[destIndex++] = Arrays.copyOfRange(data, startIndex, stopIndex);
+        }
+
+        if (stopIndex < length)
+            dest[destIndex] = Arrays.copyOfRange(data, stopIndex, length);
+
+        return dest;
+    }
+
+    private static byte[] concatArrays(byte[][] data) {
+        byte[] bytes = new byte[data.length * data[0].length];
+
+        int i = 0;
+        for (byte[] array : data) {
+            for (byte item : array) {
+                bytes[i] = item;
+                i++;
+            }
+        }
+
+        return bytes;
+    }
+
+    private static byte[] decode(String urlQuery) {
+        String decodedURL = "";
+        try {
+            decodedURL = URLDecoder.decode(urlQuery, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return Base64.getDecoder().decode(decodedURL);
+    }
+
+    private static String encode(byte[] byteArray) {
+        String base64Encoded = Base64.getEncoder().encodeToString(byteArray);
+        try {
+            return URLEncoder.encode(base64Encoded, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
 }
