@@ -6,16 +6,19 @@ import random
 
 
 def run():
-    url_query = "NkivYeRHPWegVIG%2FgiptBChbA8%2BZtjWslmOGB58oathyv1U13KIYy4kVC3Wuq4LcahaFL8lrxTl76VU921AVJw%3D%3D"
+    url_query = ("NkivYeRHPWegVIG%2FgiptBChbA8%2BZtjWslmOGB58oathyv1U13KIYy4kV"
+                 "C3Wuq4LcahaFL8lrxTl76VU921AVJw%3D%3D")
     block_size = 16
     ciphertext = decode(url_query)
     cipher_blocks = split_list(ciphertext, block_size)
     plain_blocks = list(cipher_blocks)
 
-    connection = http.client.HTTPConnection("gruenau4.informatik.hu-berlin.de", 8888)
+    connection = http.client.HTTPConnection("gruenau4.informatik.hu-berlin.de",
+                                            8888)
 
     for l in reversed(range(1, len(cipher_blocks))):
-        print("{} {} {}".format("+++++++++++++++++++++ Block:", l + 1, "+++++++++++++++++++++"))
+        print("{} {} {}".format("+++++++++++++++++++++ Block:", l + 1,
+                                "+++++++++++++++++++++"))
         c1 = cipher_blocks[l - 1]
         c2 = cipher_blocks[l]
         i2 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -24,7 +27,8 @@ def run():
         padding_length = 1
 
         for i in reversed(range(0, block_size)):
-            print("{} {} {}".format("--------------------- Position:", i + 1, "---------------------"))
+            print("{} {} {}".format("--------------------- Position:", i + 1,
+                                    "---------------------"))
             for j in range(0, i + 1):
                 c1_mod[j] = random.randint(0, 255)
             c1_mod = search_r(c1_mod, c2, i, connection)
@@ -34,7 +38,8 @@ def run():
             p2[i] = c1[i] ^ i2[i]
             print("{}: {}".format("P2", p2))
             padding_length += 1
-            for j in reversed(range(block_size - (padding_length - 1), block_size)):
+            for j in reversed(range(block_size - (padding_length - 1),
+                                    block_size)):
                 c1_mod[j] = padding_length ^ i2[j]
 
         plain_blocks[l] = p2
