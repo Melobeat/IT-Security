@@ -22,7 +22,10 @@ class Parameters:
         self.prime = hex_string_to_int(self.prime_hex)
         self.hashes_a = {}
         self.hashes_b = {}
-        self.priv_mod = 1
+        self.a_mod = self.public_a % self.prime
+        self.b_mod = self.public_b % self.prime
+        self.a_mod_actual = 1
+        self.b_mod_actual = 1
 
     def add_entry_a(self, hash_a, private_a):
         self.hashes_a[hash_a] = private_a
@@ -63,8 +66,8 @@ def find_collision(n_collisions, params):
     for i in range(1, params.prime):
         private_a = i
         private_b = i
-        hash_a = calculate_hash(params.public_b, private_a, params.prime)[0:n_collisions]
-        hash_b = calculate_hash(params.public_a, private_b, params.prime)[0:n_collisions]
+        hash_a = calculate_hash(params, 0)[0:n_collisions]
+        hash_b = calculate_hash(params, 1)[0:n_collisions]
         if hash_a in params.hashes_b:
             return [int_to_hex_string(private_a), int_to_hex_string(params.hashes_b[hash_a])]
         else:
@@ -75,8 +78,14 @@ def find_collision(n_collisions, params):
             params.add_entry_b(hash_b, private_b)
 
 
-def calculate_hash(public_key, private_key, prime):
-    secret_k = pow(public_key, private_key, prime)
+def calculate_hash(params, witch):
+    if witch == 0:
+        secret_k = (params.a_mod_actual * params.a_mod) % params.prime
+        params.a_mod_actual = secret_k
+    else:
+        secret_k = (params.b_mod_actual * params.b_mod) % params.prime
+        params.b_mod_actual = secret_k
+
     return hashlib.sha512(int_to_hex_string(secret_k).encode('utf-8')).hexdigest()
 
 
