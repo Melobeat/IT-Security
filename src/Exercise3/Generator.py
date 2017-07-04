@@ -28,15 +28,14 @@ def run():
 
     public_a = pow(generator, private_a, prime)
     public_b = pow(generator, private_b, prime)
-    print(int_to_hex_string(public_a))
-    print(int_to_hex_string(public_b))
+    print('A = {}'.format(int_to_hex_string(public_a)))
+    print('B = {}'.format(int_to_hex_string(public_b)))
 
     secret_k = pow(public_b, private_a, prime)
-    print(int_to_hex_string(secret_k))
+    print('K = {}'.format(int_to_hex_string(secret_k)))
 
-    hashed_k = hashlib.sha512(int_to_hex_string(
-        secret_k).encode('utf-8')).hexdigest()
-    print(hashed_k)
+    hashed_k = hashlib.sha512(int_to_hex_string(secret_k).encode('utf-8')).hexdigest()
+    print('H = {}'.format(hashed_k))
 
 
 def int_to_hex_string(int_value):

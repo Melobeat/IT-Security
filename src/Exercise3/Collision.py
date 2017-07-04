@@ -1,13 +1,9 @@
-""" Find a hash collision of length n for Diffie-Hellman MITM-Attack """
-
 import sys
 import hashlib
 import time
 
 
 class Parameters:
-    """ Class """
-
     def __init__(self, public_a, public_b):
         self.public_a = public_a
         self.public_b = public_b
@@ -26,74 +22,69 @@ class Parameters:
         self.prime = hex_string_to_int(self.prime_hex)
         self.hashes_a = {}
         self.hashes_b = {}
+        self.priv_mod = 1
 
     def add_entry_a(self, hash_a, private_a):
-        """ Adds entry to hashes_a """
         self.hashes_a[hash_a] = private_a
 
     def add_entry_b(self, hash_b, private_b):
-        """ Adds entry to hashes_b """
         self.hashes_b[hash_b] = private_b
 
     def clear_dicts(self):
-        """ Clears hashes_a and hashes_b"""
         self.hashes_a.clear()
         self.hashes_b.clear()
 
 
 def run():
-    """ Main function """
-    if len(sys.argv[1:]) != 2:
-        sys.exit("Bitte A und B, als Argumente angeben!")
+    if len(sys.argv[1:]) < 2:
+        sys.exit("Bitte A und B, als Argumente angeben! Optional als drittes Argument: Länge der Kollision.")
 
     public_a = hex_string_to_int(sys.argv[1])
     public_b = hex_string_to_int(sys.argv[2])
 
     params = Parameters(public_a, public_b)
 
-    n_collisions = 6
+    if len(sys.argv[1:]) == 3:
+        n_collisions = int(sys.argv[3])
+    else:
+        n_collisions = 12
+
+    params.clear_dicts()
     start_time = time.time()
-    print(find_collision(n_collisions, params))
-    print(time.time() - start_time)
+    collision = find_collision(n_collisions, params)
+    print('{} byte collision.'.format(n_collisions))
+    print('Private key a: {}, Private key b: {}'.format(collision[0], collision[1]))
+    print('Time needed: {}'.format(time.time() - start_time))
+    print('Size of hash tables: a({}) b({})'.format(len(params.hashes_a), len(params.hashes_b)))
+    print("----------------------")
 
 
 def find_collision(n_collisions, params):
-    """ Calculates hashes and compares them """
-    for i in range(1, 2**24):
+    for i in range(1, params.prime):
         private_a = i
         private_b = i
-        hash_a = calculate_hash(params.public_b,
-                                private_a, params.prime)[0:n_collisions]
-        hash_b = calculate_hash(params.public_a,
-                                private_b, params.prime)[0:n_collisions]
+        hash_a = calculate_hash(params.public_b, private_a, params.prime)[0:n_collisions]
+        hash_b = calculate_hash(params.public_a, private_b, params.prime)[0:n_collisions]
         if hash_a in params.hashes_b:
-            return [int_to_hex_string(private_a),
-                    int_to_hex_string(
-                        params.hashes_b[hash_a])]
+            return [int_to_hex_string(private_a), int_to_hex_string(params.hashes_b[hash_a])]
         else:
             params.add_entry_a(hash_a, private_a)
         if hash_b in params.hashes_a:
-            return [int_to_hex_string(
-                params.hashes_a[hash_b]),
-                    int_to_hex_string(private_b)]
+            return [int_to_hex_string(params.hashes_a[hash_b]), int_to_hex_string(private_b)]
         else:
             params.add_entry_b(hash_b, private_b)
 
 
 def calculate_hash(public_key, private_key, prime):
-    """ Calculates Sha512 """
     secret_k = pow(public_key, private_key, prime)
-    return hashlib.sha512(int_to_hex_string(
-        secret_k).encode('utf-8')).hexdigest()
+    return hashlib.sha512(int_to_hex_string(secret_k).encode('utf-8')).hexdigest()
 
 
 def int_to_hex_string(int_value):
-    """ Takes an int and converts it to hexadecimal """
     return '{0:02x}'.format(int_value)
 
 
 def hex_string_to_int(hex_string):
-    """ Takes an hexadecimal and converts it to int """
     return int(hex_string, 16)
 
 
