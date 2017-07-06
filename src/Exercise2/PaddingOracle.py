@@ -1,4 +1,4 @@
-""" Padding Oracle """
+"""Padding Oracle Attack in Python."""
 
 import urllib.parse
 import base64
@@ -8,7 +8,7 @@ import random
 
 
 def run():
-    """ Main function """
+    """Run main code."""
     url_query = ("NkivYeRHPWegVIG%2FgiptBChbA8%2BZtjWslmOGB58oathyv1U13KIYy4kV"
                  "C3Wuq4LcahaFL8lrxTl76VU921AVJw%3D%3D")
     block_size = 16
@@ -40,8 +40,8 @@ def run():
             p_2[i] = c_1[i] ^ i_2[i]
             print("{}: {}".format("P2", p_2))
             padding_length += 1
-            for j in reversed(range(block_size - (padding_length - 1),
-                                    block_size)):
+            for j in reversed(
+                    range(block_size - (padding_length - 1), block_size)):
                 c1_mod[j] = padding_length ^ i_2[j]
 
         plain_blocks[k] = p_2
@@ -52,13 +52,13 @@ def run():
 
 
 def decode(url_query):
-    """ Decodes base64 url to list of decimal values """
+    """Decode base64 url to list of decimal values."""
     decoded_url = urllib.parse.unquote(url_query)
     return list(base64.b64decode(decoded_url))
 
 
 def encode(ciphertext):
-    """ Encodes list of decimal values to base64 url """
+    """Encode list of decimal values to base64 url."""
     as_string = array.array('B', ciphertext).tostring()
     encoded_base64 = base64.b64encode(as_string)
     encoded_url = urllib.parse.quote(encoded_base64, safe='')
@@ -66,13 +66,15 @@ def encode(ciphertext):
 
 
 def split_list(input_list, chunk_size):
-    """ Splits a list in equal sized chunks """
-    return ([input_list[i:i + chunk_size]
-             for i in range(0, len(input_list), chunk_size)])
+    """Split a list in equal sized chunks."""
+    return ([
+        input_list[i:i + chunk_size]
+        for i in range(0, len(input_list), chunk_size)
+    ])
 
 
 def concat_list(lists):
-    """ Concatenates lists to one list """
+    """Concatenate lists to one list."""
     concat_ls = []
     for item in lists:
         concat_ls += item
@@ -80,7 +82,7 @@ def concat_list(lists):
 
 
 def search_r(c1_mod, c_2, position, connection):
-    """ Searches a byte where the padding is right """
+    """Search a byte where the padding is right."""
     c1_mod[position] = 0
     for i in range(1, 256):
         oracle_request = concat_list([c1_mod, c_2])
@@ -93,7 +95,7 @@ def search_r(c1_mod, c_2, position, connection):
 
 
 def send_request(query, connection):
-    """ Sends a request with the ciphertext to the server """
+    """Send a request with the ciphertext to the server."""
     connection.request("GET", "/store_secret/?secret=" + query)
     response = connection.getresponse()
     status = response.status

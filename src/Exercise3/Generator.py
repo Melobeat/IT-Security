@@ -1,11 +1,11 @@
-""" Generates Sha512 of a key made by Diffie-Hellman"""
+"""Generates Sha512 of a key made by Diffie-Hellman."""
 
 import hashlib
 import sys
 
 
 def run():
-    """ Main function """
+    """Run main code."""
     if len(sys.argv[1:]) != 2:
         sys.exit("Bitte a und b, als Argumente angeben!")
 
@@ -34,17 +34,18 @@ def run():
     secret_k = pow(public_b, private_a, prime)
     print('K = {}'.format(int_to_hex_string(secret_k)))
 
-    hashed_k = hashlib.sha512(int_to_hex_string(secret_k).encode('utf-8')).hexdigest()
+    hashed_k = hashlib.sha512(
+        int_to_hex_string(secret_k).encode('utf-8')).hexdigest()
     print('H = {}'.format(hashed_k))
 
 
 def int_to_hex_string(int_value):
-    """ Takes an int and converts it to hexadecimal """
+    """Take an int and convert it to hexadecimal."""
     return '{0:02x}'.format(int_value)
 
 
 def hex_string_to_int(hex_string):
-    """ Takes an hexadecimal and converts it to int """
+    """Take an hexadecimal and convert it to int."""
     return int(hex_string, 16)
 
 
